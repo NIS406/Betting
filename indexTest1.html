@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Football Betting Settlement</title>
+<style>
+*{box-sizing:border-box}
+:root{--glass:linear-gradient(135deg,rgba(255,255,255,.20),rgba(255,255,255,.05));--edge:rgba(255,255,255,.28);--hi:inset 0 1px 0 rgba(255,255,255,.55),inset 0 -1px 0 rgba(255,255,255,.08),inset 0 0 22px rgba(255,255,255,.05)}
+body{font-family:'Pyidaungsu',-apple-system,"Segoe UI",Roboto,sans-serif;margin:0;padding:22px 14px 40px;min-height:100vh;color:#f5f7ff;font-size:17px;background:#070b1a;isolation:isolate;overflow-x:hidden}
+/* ရွှေ့နေတဲ့ အရောင်လုံးများ — glass အောက်က အလင်းအရောင် */
+body::before,body::after{content:"";position:fixed;z-index:-1;border-radius:50%;filter:blur(70px);opacity:.85;pointer-events:none}
+body::before{width:62vmax;height:62vmax;left:-20vmax;top:-18vmax;background:radial-gradient(circle at 35% 35%,#7c3aed,#2563eb 55%,transparent 72%);animation:drift1 22s ease-in-out infinite alternate}
+body::after{width:58vmax;height:58vmax;right:-22vmax;bottom:-20vmax;background:radial-gradient(circle at 60% 60%,#06b6d4,#10b981 50%,transparent 72%);animation:drift2 26s ease-in-out infinite alternate}
+.orb{position:fixed;z-index:-1;width:38vmax;height:38vmax;left:30vw;top:38vh;border-radius:50%;filter:blur(80px);opacity:.55;pointer-events:none;background:radial-gradient(circle,#ec4899,#f59e0b 55%,transparent 72%);animation:drift3 30s ease-in-out infinite alternate}
+@keyframes drift1{to{transform:translate(18vmax,14vmax) scale(1.15)}}
+@keyframes drift2{to{transform:translate(-16vmax,-12vmax) scale(1.1)}}
+@keyframes drift3{to{transform:translate(-22vw,-18vh) scale(.85)}}
+@media (prefers-reduced-motion:reduce){body::before,body::after,.orb{animation:none}}
+
+.wrap{max-width:760px;margin:0 auto}
+h2{text-align:center;margin:6px 0 20px;font-size:28px;letter-spacing:.3px;text-shadow:0 2px 18px rgba(124,58,237,.7)}
+h3{margin:0 0 6px;font-size:19px}
+
+.card{position:relative;overflow:hidden;background:var(--glass);border:1px solid var(--edge);border-radius:28px;padding:20px 18px;margin-bottom:20px;
+  -webkit-backdrop-filter:blur(26px) saturate(180%);backdrop-filter:blur(26px) saturate(180%);
+  box-shadow:var(--hi),0 24px 60px rgba(0,0,0,.38)}
+/* အပေါ်ဘက် အလင်းရောင်ပြန် (specular highlight) */
+.card::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:radial-gradient(120% 70% at 12% -10%,rgba(255,255,255,.32),transparent 55%)}
+.card>*{position:relative}
+
+label{display:block;margin:12px 0 6px;font-size:15px;color:rgba(255,255,255,.85)}
+textarea{width:100%;height:260px;padding:14px;border-radius:20px;border:1px solid rgba(255,255,255,.2);
+  background:rgba(8,12,30,.35);color:#fff;font-size:16px;resize:vertical;outline:none;
+  box-shadow:inset 0 2px 10px rgba(0,0,0,.35),0 1px 0 rgba(255,255,255,.15);transition:border-color .2s,box-shadow .2s}
+textarea:focus{border-color:rgba(126,249,209,.75);box-shadow:inset 0 2px 10px rgba(0,0,0,.35),0 0 0 3px rgba(126,249,209,.22)}
+textarea::placeholder{color:rgba(255,255,255,.35)}
+
+button{position:relative;overflow:hidden;width:100%;padding:15px;margin-top:12px;border-radius:999px;font-weight:700;font-size:17px;cursor:pointer;color:#fff;
+  border:1px solid rgba(255,255,255,.4);text-shadow:0 1px 6px rgba(0,0,0,.35);
+  background:linear-gradient(135deg,rgba(94,234,212,.65),rgba(34,197,94,.45));
+  -webkit-backdrop-filter:blur(10px) saturate(160%);backdrop-filter:blur(10px) saturate(160%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.7),inset 0 -8px 16px rgba(0,0,0,.12),0 8px 22px rgba(16,185,129,.35);
+  transition:transform .15s ease,filter .15s ease,box-shadow .15s ease}
+button::after{content:"";position:absolute;left:8%;right:8%;top:2px;height:46%;border-radius:999px;pointer-events:none;background:linear-gradient(rgba(255,255,255,.5),rgba(255,255,255,0))}
+button:hover{filter:brightness(1.12) saturate(1.1)}
+button:active{transform:scale(.97)}
+button.copy{background:linear-gradient(135deg,rgba(96,165,250,.7),rgba(129,140,248,.5));box-shadow:inset 0 1px 0 rgba(255,255,255,.7),inset 0 -8px 16px rgba(0,0,0,.12),0 8px 22px rgba(99,102,241,.4)}
+button.clear,.btnOk{background:linear-gradient(135deg,rgba(251,113,133,.72),rgba(244,63,94,.5));box-shadow:inset 0 1px 0 rgba(255,255,255,.65),inset 0 -8px 16px rgba(0,0,0,.12),0 8px 22px rgba(244,63,94,.38)}
+.btnCancel{background:linear-gradient(135deg,rgba(148,163,184,.55),rgba(71,85,105,.45));box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 8px 22px rgba(0,0,0,.3)}
+
+.tbl{overflow-x:auto;border-radius:18px}
+table{width:100%;border-collapse:separate;border-spacing:0;margin-top:12px;font-size:15px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.14);border-radius:18px;overflow:hidden}
+th,td{padding:11px 7px;text-align:center;border-bottom:1px solid rgba(255,255,255,.1)}
+th{background:linear-gradient(rgba(255,255,255,.2),rgba(255,255,255,.08));text-shadow:0 1px 4px rgba(0,0,0,.3)}
+tr:last-child th,tr:last-child td{border-bottom:none}
+.win{color:#6ee7b7;font-weight:700;text-shadow:0 0 14px rgba(52,211,153,.55)}
+.lose{color:#fda4af;font-weight:700;text-shadow:0 0 14px rgba(251,113,133,.5)}
+.warn{color:#fcd34d;font-weight:700;text-shadow:0 0 14px rgba(251,191,36,.45)}
+
+pre{background:rgba(5,8,22,.5);color:#8dfbe0;padding:14px;border-radius:20px;border:1px solid rgba(255,255,255,.14);overflow-x:auto;white-space:pre-wrap;font-size:15px;box-shadow:inset 0 2px 12px rgba(0,0,0,.4)}
+.note{font-size:13px;color:rgba(255,255,255,.62);margin-top:10px;text-align:center;line-height:1.55}
+
+details{background:linear-gradient(135deg,rgba(255,255,255,.12),rgba(255,255,255,.03));border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:12px 14px;margin-top:10px;box-shadow:inset 0 1px 0 rgba(255,255,255,.3)}
+summary{cursor:pointer;font-size:15px}
+.hbtn{display:flex;gap:10px}.hbtn button{margin-top:10px;padding:11px;font-size:15px}
+
+#confirmOverlay{display:none;position:fixed;inset:0;background:rgba(3,6,20,.55);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);z-index:999;align-items:center;justify-content:center;padding:20px}
+#confirmBox{background:linear-gradient(135deg,rgba(255,255,255,.24),rgba(255,255,255,.08));border:1px solid rgba(255,255,255,.35);border-radius:28px;padding:24px 20px;max-width:340px;width:100%;text-align:center;
+  -webkit-backdrop-filter:blur(30px) saturate(190%);backdrop-filter:blur(30px) saturate(190%);box-shadow:var(--hi),0 30px 70px rgba(0,0,0,.5)}
+#confirmBox p{margin:0 0 18px}
+.btnRow{display:flex;gap:10px}.btnRow button{margin-top:0}
+</style>
+</head>
+<body>
+<div class="orb"></div>
+<div class="wrap">
+<h2>⚽ Football Betting Settlement</h2>
+
+<div class="card">
+  <label>ဒိုင်ကြေးနှင့် ထိုးကြေးစာရင်း (အစဉ်လိုက် paste လုပ်ပါ)</label>
+  <textarea id="inputBets" placeholder="Norway. L-05
+Portugal. 1-70
+
+Portugal B-15000
+Austria 15000"></textarea>
+  <button class="clear" onclick="showConfirm('bets')">ထိုးကြေးစာရင်းရှင်းမည် (Clear)</button>
+  <p class="note">ဒီ button က ဒိုင်ကြေး + ထိုးကြေးစာရင်းပဲ ရှင်းမယ် — ဂိုးရလဒ်က မပျက်ဘူး</p>
+</div>
+
+<div class="card">
+  <label>ဂိုးရလဒ်များ</label>
+  <textarea id="inputResults" placeholder="Denmark 2 - 3 Norway
+Wales 2 - 3 Portugal"></textarea>
+  <button class="clear" onclick="showConfirm('results')">ဂိုးရလဒ်ရှင်းမည် (Clear)</button>
+  <p class="note">ဒီ button က ဂိုးရလဒ်ပဲ ရှင်းမယ် — ထိုးကြေးစာရင်းက မပျက်ဘူး</p>
+</div>
+
+<div class="card">
+  <button onclick="calculateAll()">တွက်ပါ</button>
+</div>
+
+<div class="card" id="output" style="display:none">
+  <h3>ရလဒ်</h3>
+  <div id="resultBox" class="tbl"></div>
+  <button class="copy" onclick="copyText()">Copy ကူးယူ</button>
+  <pre id="copyBlock"></pre>
+</div>
+</div>
+
+<div class="card">
+  <h3>🕘 History (သိမ်းထားသောစာရင်းများ)</h3>
+  <div id="historyList"></div>
+  <button class="clear" onclick="showConfirm('history')">History အားလုံးဖျက်မည်</button>
+  <p class="note">"တွက်ပါ" နှိပ်တိုင်း အလိုအလျောက်သိမ်းမယ် (နောက်ဆုံး ၅၀ ခု) — ဒီ browser ထဲမှာပဲ သိမ်းထားတာပါ</p>
+</div>
+</div>
+
+<div id="confirmOverlay">
+  <div id="confirmBox">
+    <p id="confirmText"></p>
+    <div class="btnRow">
+      <button class="btnCancel" onclick="cancelClear()">Cancel</button>
+      <button class="btnOk" onclick="okClear()">OK</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const nameMap = {
+  "ဖာရိုကျွန်းစု":"Faroe Islands","ဖာရိုးကျွန်းစု":"Faroe Islands",
+  "ဆလိုဗားကီးယား":"Slovakia","ဂရိ":"Greece","ကာဇက်စတန်":"Kazakhstan",
+  "လစ်သူရေးနီးယား":"Lithuania","လစ်သူရေနီးယား":"Lithuania",
+  "အက်စတိုးနီးယား":"Estonia","အိုက်စလန်":"Iceland","ဂျာမနီ":"Germany",
+  "ဆလိုဗေးနီးယား":"Slovenia","ဆွစ်ဇာလန်":"Switzerland","မော်တာ":"Malta",
+  "ဘူလ်ဂေးရီးယား":"Bulgaria","ဘူဂေးရီးယား":"Bulgaria",
+  "ဒိန်းမတ်":"Denmark","အိုင်ယာလန်":"Ireland","နော်ဝေ":"Norway",
+  "ဘော့စနီးယား":"Bosnia and Herzegovina","ပေါ်တူဂီ":"Portugal","ပေါ်တူဂီး":"Portugal",
+  "ဩစတြီးယား":"Austria","Bosnia Heregovina":"Bosnia and Herzegovina"
+};
+
+function norm(s){
+  s = String(s || "").replace(/\./g, "").replace(/\s+/g, " ").trim();
+  if(nameMap[s]) s = nameMap[s];
+  return s.toLowerCase();
+}
+function esc(s){ return String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
+function htmlEsc(s){
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+}
+
+// ---------- Parsing ----------
+function parseHandicapToken(t){
+  t = String(t).trim();
+  let m;
+  if((m = t.match(/^(\d+)\s*([+-])\s*(\d+)$/))) return {goals:+m[1], sign:m[2], pct:+m[3], level:false};
+  if((m = t.match(/^-(\d+)$/))) return {goals:1, sign:'-', pct:+m[1], level:false};
+  // 2= : N ဂိုးပေး၊ သရေဆို ငွေပြန်
+  if((m = t.match(/^(\d+)\s*=$/))) return {goals:+m[1], sign:'=', pct:null, level:false};
+  // = : level ၊ သရေဆို ငွေပြန်
+  if(t === '=') return {goals:0, sign:'=', pct:null, level:true};
+  if((m = t.match(/^L[-=]?(\d+)$/i))) return {goals:0, sign:'', pct:+m[1], level:true};
+  if(/^L[-=]?$/i.test(t)) return {goals:0, sign:'', pct:null, level:true};
+  // 55 / 35 / 85 (၁၀၀ ထက်ကြီးရင် ထိုးကြေးလို့ယူမယ်)
+  if((m = t.match(/^(\d+)$/)) && +m[1] <= 100) return {goals:0, sign:'', pct:+m[1], level:true};
+  return null;
+}
+
+function parseTotalToken(t){
+  t = String(t).trim();
+  let m;
+  if((m = t.match(/^(\d+(?:\.\d+)?)\s*([+-])\s*(\d+)$/))) return {line:+m[1], sign:m[2], pct:+m[3]};
+  if((m = t.match(/^(\d+(?:\.\d+)?)\s*=$/))) return {line:+m[1], sign:'=', pct:null};
+  return null;
+}
+
+const HRE = '[+-]?\\d+(?:\\.\\d+)?(?:\\s*[+-]\\s*\\d+)?\\s*=?|=|L[-=]?\\d*';
+
+function parseOddsLine(line){
+  let left = line.trim(), tToken = null, m;
+
+  if((m = left.match(/^(.+?)\s*\(\s*(.+?)\s*\)$/))){ left = m[1].trim(); tToken = m[2]; }
+  else if(left.includes('/')){ const k = left.indexOf('/'); tToken = left.slice(k + 1).trim(); left = left.slice(0, k).trim(); }
+
+  // အသင်းနာမည်နဲ့ ကြေးကြားမှာ space မပါလည်း (မြန်မာစာလုံးအဆုံးဆို) ရတယ်
+  const hm = left.match(new RegExp('^(.+?)(?:\\s+|(?<=[^\\x00-\\x7F]))(' + HRE + ')\\s*$', 'i'));
+  if(!hm) return null;
+
+  const team = hm[1].replace(/\./g, '').trim();
+  const h = parseHandicapToken(hm[2].trim());
+  const t = tToken ? parseTotalToken(tToken) : null;
+  if(!h || !team) return null;
+  if(tToken && !t) return null;
+  return {team, h, t};
+}
+
+function parseBetLine(line){
+  let m;
+  if((m = line.match(/^(.+?)\s+ဂိုးအောက်\s*(\d+)\s*သိန်း$/))) return {raw:line, team:m[1].trim(), type:'G-', stake:+m[2]*1000};
+  if((m = line.match(/^(.+?)\s+ဂိုးပေါ်\s*(\d+)\s*သိန်း$/))) return {raw:line, team:m[1].trim(), type:'G+', stake:+m[2]*1000};
+  if((m = line.match(/^(.+?)\s+(\d+)\s*သိန်း$/))) return {raw:line, team:m[1].trim(), type:'B', stake:+m[2]*1000};
+
+  // Team B-15000 / Team B 15000 / Team G+ 15000 / Team 15000
+  if((m = line.match(/^(.+?)\s*(B-|B|G\+|G-)?\s*(\d+)\s*$/i))){
+    const team = m[1].replace(/\./g, '').trim();
+    if(/[+\-\/()（）]/.test(team)) return null;
+    const type = (m[2] || 'B').toUpperCase();
+    const stake = +m[3];
+    if(!team || !stake) return null;
+    return {raw:line, team, type, stake};
+  }
+  return null;
+}
+
+function parseResultLine(line){
+  if(line.includes('ဂိုးရလဒ်')) return null;
+  const m = line.match(/^(.+?)\s+(\d+)\s*-\s*(\d+)\s+(.+)$/);
+  return m ? {a:m[1].trim(), ga:+m[2], gb:+m[3], b:m[4].trim()} : null;
+}
+
+function findMatch(team, results){
+  const t = norm(team);
+  const exact = results.find(r => norm(r.a) === t || norm(r.b) === t);
+  if(exact) return {match:exact, isA:norm(exact.a) === t};
+
+  const re = new RegExp('(^|\\s)' + esc(t) + '(\\s|$)', 'i');
+  // နာမည်တိုတဲ့ (အနီးစပ်ဆုံး) အသင်းကို ဦးစားပေး
+  let best = null, bestLen = Infinity;
+  results.forEach(r => {
+    [[r.a,true],[r.b,false]].forEach(([n,isA]) => {
+      const nn = norm(n);
+      if(re.test(nn) && nn.length < bestLen){ best = {match:r, isA}; bestLen = nn.length; }
+    });
+  });
+  return best;
+}
+
+// ---------- Settlement ----------
+function settleBet(bet, odds, m, bettorIsA, isQuoted){
+  const S = bet.stake;
+  const full = w => w ? ['အပြည့်နိုင်', S] : ['အပြည့်ရှုံး', -S];
+  const part = (w, p) => { const v = Math.round(S * p / 100); return w ? [p + '% နိုင်', v] : [p + '% ရှုံး', -v]; };
+  const push = ['Push (ငွေပြန်)', 0];
+  let r;
+
+  if(bet.type === 'G+' || bet.type === 'G-'){
+    const isOver = bet.type === 'G+';
+    const total = m.ga + m.gb, {line:L, sign, pct} = odds.t;
+    if(total === L){
+      r = sign === '=' ? push : sign === '+' ? part(isOver, pct ?? 100) : part(!isOver, pct ?? 100);
+    } else {
+      r = full(isOver ? total > L : total < L);
+    }
+  } else {
+    const my = bettorIsA ? m.ga : m.gb, op = bettorIsA ? m.gb : m.ga;
+    const diff = my - op, h = odds.h, pct = h.pct ?? 100;
+    if(h.level){
+      if(diff !== 0) r = full(diff > 0);
+      else r = h.sign === '=' ? push : part(!isQuoted, pct);
+    } else {
+      const eff = diff + (isQuoted ? -h.goals : h.goals);
+      if(eff !== 0) r = full(eff > 0);
+      else if(h.sign === '=') r = push;
+      else if(h.sign === '+') r = part(isQuoted, pct);
+      else r = part(!isQuoted, pct);
+    }
+  }
+  return {settlement:r[0], profit:r[1]};
+}
+
+function oddsToText(o){
+  if(!o) return '-';
+  const h = o.h;
+  let s = !h ? '' : h.level ? (h.sign === '=' ? '=' : 'L-' + (h.pct ?? '')) : h.goals + h.sign + (h.pct ?? '');
+  if(o.t) s += (s ? ' / ' : '') + o.t.line + o.t.sign + (o.t.pct ?? '');
+  return s;
+}
+
+function readOddsLine(line, st){
+  // ဂိုးပေါ်/အောက်ကြေးတန်းစီ ဥပမာ: "Portugal ဂိုးပေါ်/အောက် 3-30" သို့ "ဂိုးပေါ်/အောက် 3-30"
+  const tm = line.match(/^(.*?)\s*ဂိုး\S*\s*(\d+(?:\.\d+)?\s*(?:[+-]\s*\d+|=))$/);
+  if(tm){
+    const t = parseTotalToken(tm[2]);
+    const team = tm[1].replace(/\./g, '').trim() || (st.currentOdds ? st.currentOdds.team : (st.currentTotal ? st.currentTotal.team : ''));
+    if(t && team){ st.totalMap[norm(team)] = t; st.currentTotal = {team, t}; return true; }
+  }
+  const o = parseOddsLine(line);
+  if(!o) return false;
+  st.currentOdds = o; st.oddsMap[norm(o.team)] = o;
+  if(o.t){ st.totalMap[norm(o.team)] = o.t; st.currentTotal = {team:o.team, t:o.t}; }
+  return true;
+}
+
+function calculateAll(){
+  const split = id => document.getElementById(id).value.split("\n").map(l => l.trim()).filter(l => l);
+  const results = split("inputResults").map(parseResultLine).filter(Boolean);
+
+  const st = {currentOdds:null, oddsMap:{}, totalMap:{}, currentTotal:null};
+  // ကြေးကို bet ရဲ့နောက်မှ ရေးထားရင်လည်း သုံးနိုင်အောင် အရင်ဖတ်ထားတယ် (fallback)
+  const late = {currentOdds:null, oddsMap:{}, totalMap:{}, currentTotal:null};
+  split("inputBets").forEach(l => { if(!(l.includes('ကြေးပြောင်း') || l.startsWith('*'))) readOddsLine(l, late); });
+  const bets = [];
+  const warn = (b, odds, msg) => bets.push({...b, odds, match:null, settlement:msg, profit:0, warn:true});
+
+  split("inputBets").forEach(line => {
+    if(line.includes('ကြေးပြောင်း') || line.startsWith('*')) return;
+
+    if(readOddsLine(line, st)) return;
+
+    const b = parseBetLine(line);
+    if(!b){ bets.push({raw:line, stake:'-', odds:null, match:null, settlement:'နားမလည်ပါ', profit:0, warn:true}); return; }
+
+    const f = findMatch(b.team, results);
+
+    // ဂိုးပေါ်/အောက် ထိုးကြေး — handicap ကြေးမလိုဘဲ ဂိုးပေါ်/အောက်ကြေးနဲ့ပဲ တွက်မယ်
+    if(b.type === 'G+' || b.type === 'G-'){
+      const opp = f ? norm(f.isA ? f.match.b : f.match.a) : null;
+      let t = st.totalMap[norm(b.team)] || (opp && st.totalMap[opp]) || late.totalMap[norm(b.team)] || (opp && late.totalMap[opp]), tf = f;
+      if(!t && st.currentTotal){
+        t = st.currentTotal.t;
+        const cf = findMatch(st.currentTotal.team, results);
+        if(f && cf && f.match !== cf.match) t = null;
+        else if(!f) tf = cf;
+      }
+      if(!t) return warn(b, null, 'ဂိုးပေါ်/အောက် ကြေးမရှိ');
+      const od = {team:b.team, h:null, t};
+      if(!tf) return warn(b, od, 'ပွဲရလဒ်မတွေ့ပါ');
+      bets.push({...b, odds:od, match:tf.match, ...settleBet(b, od, tf.match, true, true)});
+      return;
+    }
+
+    // ကြေးရွေးချယ်ခြင်း: ကိုယ့်အသင်းကြေး → ပွဲဖက်အသင်းကြေး → နောက်ဆုံးကြေး
+    const opp2 = f ? norm(f.isA ? f.match.b : f.match.a) : null;
+    let odds = st.oddsMap[norm(b.team)] || (opp2 && st.oddsMap[opp2]) || late.oddsMap[norm(b.team)] || (opp2 && late.oddsMap[opp2]) || st.currentOdds;
+
+    if(!odds) return warn(b, null, 'ကြေးမတွေ့ပါ');
+    if((b.type === 'G+' || b.type === 'G-') && !odds.t) return warn(b, odds, 'ဂိုးပေါ်/အောက် ကြေးမရှိ');
+
+    const sameTeam = norm(b.team) === norm(odds.team);
+    const qf = sameTeam && f ? f : findMatch(odds.team, results);
+    if(!qf) return warn(b, odds, 'ပွဲရလဒ်မတွေ့ပါ');
+
+    // ကြေးက တခြားပွဲဟာဆိုရင် မှားတွက်မယ့်အစား သတိပေးမယ်
+    if(!sameTeam && f && f.match !== qf.match) return warn(b, odds, 'ကြေးမတွေ့ပါ');
+
+    // ကြေးပေးအသင်းဘက်က ထိုးတာလား (အသင်းတူ XOR B-)
+    const bettorQuoted = sameTeam !== (b.type === 'B-');
+    const bettorIsA = bettorQuoted ? qf.isA : !qf.isA;
+    const isType = (b.type === 'G+' || b.type === 'G-') ? 'G' : 'B';
+    const bb = {...b, type: b.type === 'B-' ? 'B' : b.type};
+
+    const s = settleBet(bb, odds, qf.match, bettorIsA, bettorQuoted);
+    bets.push({...b, odds, match:qf.match, ...s});
+  });
+
+  let html = `<table><tr><th>ထိုးထားသည့်စာရင်း</th><th>ထိုးငွေ</th><th>ကြေး</th><th>ပွဲရလဒ်</th><th>အနိုင်/အရှုံး</th></tr>`;
+  let copy = "", winSum = 0, loseSum = 0;
+
+  bets.forEach(b => {
+    if(b.profit > 0) winSum += b.profit;
+    if(b.profit < 0) loseSum += -b.profit;
+    const sign = b.profit >= 0 ? "+" : "-";
+    const matchText = b.match ? `${b.match.a} ${b.match.ga}-${b.match.gb} ${b.match.b}` : '-';
+    const cls = b.warn ? 'warn' : (b.profit >= 0 ? 'win' : 'lose');
+    const val = b.warn ? '' : ` (${sign}${Math.abs(b.profit)})`;
+
+    html += `<tr><td>${htmlEsc(b.raw)}</td><td>${b.stake}</td><td>${htmlEsc(oddsToText(b.odds))}</td><td>${htmlEsc(matchText)}</td><td class="${cls}">${htmlEsc(b.settlement)}${val}</td></tr>`;
+    copy += b.warn ? `${b.raw}(${b.settlement})\n` : `${b.raw}(${sign}${Math.abs(b.profit)})\n`;
+  });
+
+  const net = winSum - loseSum;
+  html += `<tr><th colspan="4">စုစုပေါင်းနိုင်ငွေ</th><th class="win">+${winSum}</th></tr>
+           <tr><th colspan="4">စုစုပေါင်းရှုံးငွေ</th><th class="lose">-${loseSum}</th></tr>`;
+  copy += `\n(+)${winSum}\n(-)${loseSum}\nNet: ${net >= 0 ? '+' : '-'}${Math.abs(net)}`;
+
+  document.getElementById("resultBox").innerHTML = html + '</table>';
+  document.getElementById("copyBlock").textContent = copy;
+  document.getElementById("output").style.display = "block";
+  addHistory({id:Date.now(), time:new Date().toLocaleString('en-GB'), html:html + '</table>', copy, win:winSum, lose:loseSum, net, count:bets.length});
+}
+
+function copyText(){ copyStr(document.getElementById("copyBlock").textContent); }
+function copyStr(text){
+  const ok = () => alert("Copy ပြီးပါပြီ");
+  const fallback = () => {
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); ok(); }catch(e){ alert("Copy မရပါ — စာသားကို ကိုယ်တိုင်ရွေးကူးပါ"); }
